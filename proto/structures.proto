@@ -1,0 +1,95 @@
+// Definition of the various structures as used in this project
+
+syntax = "proto3";
+
+// Types of various activation functions used
+enum ActivationType {
+  UNDEFINED = 0;
+  SIGMOID = 1;
+  TANH = 2;
+  RELU = 3;
+}
+
+// A node gene can either be an input, output, or hidden node.
+// They are connected by connection genes.
+message Node {
+  enum Type {
+    // Undefined/error type
+    UNDEFINED = 0;
+    INPUT = 1;
+    OUTPUT = 2;
+    HIDDEN = 3;
+    // Each network has a bias node which is connected to all non-input nodes.
+    BIAS = 4;
+  }
+
+  int32 id = 1;
+  Type type = 2;
+  ActivationType activation_type = 3;
+}
+
+// A connection gene is defined by the input and output nodes (by id).
+// The innovation number is a globally unique value that is necessary for
+// crossing over.
+message Connection {
+  int32 innovation = 1;
+  bool enabled = 2;
+  double weight = 3;
+  int32 in_node = 4;
+  int32 out_node = 5;
+}
+
+// A Long Short-Term Memory (LSTM) unit consists of cell state and input,
+// forget, and output gates each with their own weight matrices. Each genome can
+// have a "stack" of LSTM units of the same capacity that feed into each other
+// sequentially. The stack then connects to the first "layer" of hidden nodes.
+// The stack receives all input values, and the capacity is guaranteed to be at
+// least the input size of the genome.
+message LSTMUnit {
+  int32 id = 1;
+  // The size of the state maintained by this LSTM unit.
+  int32 capacity = 2;
+
+  // Linear represenations of capacity * (capacity + input_size) matrices which
+  // are evolved for the three gates and updating the state.
+  // i.e. [[capacity + input_size] * capacity] flattened
+  repeated double input_weights = 3;
+  repeated double forget_weights = 4;
+  repeated double output_weights = 5;
+  repeated double state_weights = 6;
+
+  // Bias values of each gate
+  double input_bias = 7;
+  double forget_bias = 8;
+  double output_bias = 9;
+  double state_bias = 10;
+
+  // List of ids of hidden nodes this unit is connected to. Should be empty if
+  // this unit is not the last unit of a stack.
+  repeated int32 out_nodes = 11;
+}
+
+// The genome is a linear representation of the neural network's structure.
+// Different genomes are crossed over and speciated to perform "evolution".
+message Genome {
+  int32 id = 1;
+
+  // The stack of LSTM units. Results feed into the next unit with the exception
+  // of the last, which feeds into hidden nodes.
+  repeated LSTMUnit lstm_units = 2;
+
+  // Nodes are stored in topological order from input to output.
+  // i.e. input nodes -> bias node -> hidden nodes -> output nodes
+  repeated Node nodes = 3;
+  repeated Connection connections = 4;
+
+  // Fields that are maintained for convenience/optimizations.
+  // While they can be extrapolated from the other fields, doing so on demand
+  // would be inefficient.
+  int32 input_size = 5;
+  int32 output_size = 6;
+  // Unlike innovation numbers, node ids are effectively local.
+  int32 max_node_id = 7;
+  // Unlike innovation numbers, LSTM unit ids are effectively local.
+  int32 max_lstm_unit_id = 8;
+}

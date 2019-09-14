@@ -1,0 +1,5 @@
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+add_library(neat_lstm *.h)
+add_dependencies(neat_lstm proto)
+target_link_libraries(neat_lstm proto)

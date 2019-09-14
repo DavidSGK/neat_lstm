@@ -1,0 +1,41 @@
+// Definition of various configuration fields for operations such as mutation,
+// speciation, etc.
+
+syntax = "proto3";
+
+message Config {
+  message Mutation {
+    double p_add_connection = 1;
+    double p_add_node = 2;
+    double p_toggle_connection = 3;
+    double p_perturb_weights = 4;
+    double p_randomize_weight = 5;
+    double perturb_weight_power = 6;
+    double p_change_activation = 7;
+
+    double p_add_lstm_unit = 16;
+    double p_expand_lstm_state = 17;
+    double p_perturb_lstm_weights = 18;
+    double p_perturb_lstm_weight_power = 19;
+  }
+
+  // TODO: Add stagnancy parameters
+  message Speciation {
+    // c1, c2, c3 respectively
+    double excess_coefficient = 1;
+    double disjoint_coefficient = 2;
+    double weights_coefficient = 3;
+
+    // delta_t
+    double compatibility_threshold = 4;
+  }
+
+  message Bounds {
+    double min_weight = 1;
+    double max_weight = 2;
+  }
+
+  Mutation mutation = 1;
+  Speciation speciation = 2;
+  Bounds bounds = 3;
+}
